@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.collections.FXCollections?>
+
+<?import java.lang.String?>
+<VBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.risonna.stuff.figurecubestuff.controller.MainController">
+    <HBox spacing="10">
+        <Label text="Фигура:"/>
+        <ComboBox fx:id="figureComboBox">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Цилиндр"/>
+                    <String fx:value="Параллелепипед"/>
+                    <String fx:value="Конус"/>
+                    <String fx:value="Треугольник"/>
+                </FXCollections>
+            </items>
+        </ComboBox>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Материал:"/>
+        <ComboBox fx:id="materialComboBox">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Cu"/>
+                    <String fx:value="Al"/>
+                    <String fx:value="Fe"/>
+                    <String fx:value="Ni"/>
+                </FXCollections>
+            </items>
+        </ComboBox>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Высота:"/>
+        <TextField fx:id="heightField"/>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Основание:"/>
+        <TextField fx:id="baseField"/>
+    </HBox>
+    <VBox spacing="10">
+        <Label fx:id="deformedHeightLabel" text="Деформированная высота: "/>
+        <Label fx:id="deformedBaseLabel" text="Деформированное основание: "/>
+    </VBox>
+    <Button text="Рассчитать" onAction="#onCalculate"/>
+    <Canvas fx:id="canvas" width="800" height="500"/>
+</VBox>
