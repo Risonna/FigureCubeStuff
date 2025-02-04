@@ -1,55 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.collections.FXCollections?>
-
 <?import java.lang.String?>
-<VBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.risonna.stuff.figurecubestuff.controller.MainController">
-    <HBox spacing="10">
-        <Label text="Фигура:"/>
-        <ComboBox fx:id="figureComboBox">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="Цилиндр"/>
-                    <String fx:value="Параллелепипед"/>
-                    <String fx:value="Конус"/>
-                    <String fx:value="Треугольник"/>
-                </FXCollections>
-            </items>
-        </ComboBox>
-    </HBox>
-    <HBox spacing="10">
-        <Label text="Материал:"/>
-        <ComboBox fx:id="materialComboBox">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="Cu"/>
-                    <String fx:value="Al"/>
-                    <String fx:value="Fe"/>
-                    <String fx:value="Ni"/>
-                </FXCollections>
-            </items>
-        </ComboBox>
-    </HBox>
-    <HBox spacing="10">
-        <Label text="Высота:"/>
-        <TextField fx:id="heightField"/>
-    </HBox>
-    <HBox spacing="10">
-        <Label text="Основание:"/>
-        <TextField fx:id="baseField"/>
-    </HBox>
-    <VBox spacing="10">
-        <Label fx:id="deformedHeightLabel" text="Деформированная высота: "/>
-        <Label fx:id="deformedBaseLabel" text="Деформированное основание: "/>
-    </VBox>
-    <Button text="Рассчитать" onAction="#onCalculate"/>
-    <Canvas fx:id="canvas" width="800" height="500"/>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.risonna.stuff.figurecubestuff.controller.MainController"
+      styleClass="root">
+
+    <!-- Menu Bar -->
+    <MenuBar styleClass="menu-bar">
+        <Menu text="Файл">
+            <MenuItem text="Создать проект" onAction="#onCreateProject"/>
+            <MenuItem text="Открыть" onAction="#onOpen"/>
+            <MenuItem text="Сохранить проект" onAction="#onSaveProject"/>
+            <MenuItem text="Сохранить в БД" onAction="#onSaveToDb"/>
+            <SeparatorMenuItem />
+            <MenuItem text="Выход" onAction="#onExit"/>
+        </Menu>
+        <Menu text="Расчёт">
+            <MenuItem text="Показать расчет" onAction="#showCalculationView"/>
+        </Menu>
+        <Menu text="Анализ">
+            <MenuItem text="Анализ" onAction="#onAnalysisView"/>
+        </Menu>
+    </MenuBar>
+
+    <!-- Main Content -->
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Calculator View -->
+        <VBox fx:id="calculatorView" spacing="20" styleClass="content-area">
+            <padding>
+                <Insets top="20" right="30" bottom="20" left="30"/>
+            </padding>
+
+            <!-- Input Section -->
+            <GridPane hgap="15" vgap="15">
+                <Label text="Фигура:" styleClass="input-label"
+                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="figureComboBox" styleClass="combo-box"
+                          GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Цилиндр"/>
+                            <String fx:value="Параллелепипед"/>
+                            <String fx:value="Конус"/>
+                            <String fx:value="Треугольник"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+
+                <Label text="Материал:" styleClass="input-label"
+                       GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <ComboBox fx:id="materialComboBox" styleClass="combo-box"
+                          GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Cu"/>
+                            <String fx:value="Al"/>
+                            <String fx:value="Fe"/>
+                            <String fx:value="Ni"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+
+                <Label text="Высота:" styleClass="input-label"
+                       GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="heightField" styleClass="text-field"
+                           GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <Label text="Основание:" styleClass="input-label"
+                       GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <TextField fx:id="baseField" styleClass="text-field"
+                           GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            </GridPane>
+
+            <!-- Results Section -->
+            <VBox spacing="10" styleClass="results-section">
+                <Label fx:id="deformedHeightLabel" text="Деформированная высота: "
+                       styleClass="result-label"/>
+                <Label fx:id="deformedBaseLabel" text="Деформированное основание: "
+                       styleClass="result-label"/>
+            </VBox>
+
+            <!-- Calculate Button -->
+            <Button text="Рассчитать" onAction="#onCalculate"
+                    styleClass="calculate-button" fx:id="calculateButton"/>
+
+            <!-- Canvas -->
+            <Canvas fx:id="canvas" width="800" height="500"
+                    styleClass="canvas-area"/>
+        </VBox>
+
+        <!-- Analysis View (hidden by default) -->
+        <VBox fx:id="analysisView" spacing="20" styleClass="content-area" visible="false">
+            <GridPane hgap="10" vgap="10" fx:id="chartsGrid">
+                <!-- Placeholder for 4 charts -->
+                <Pane styleClass="chart" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Pane styleClass="chart" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Pane styleClass="chart" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Pane styleClass="chart" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            </GridPane>
+        </VBox>
+    </StackPane>
 </VBox>

@@ -19,55 +19,22 @@ public class Cylinder extends AbstractFigure {
     }
 
     @Override
-    public void draw(GraphicsContext gc, double scale) {
-        gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+    protected void drawFigure(GraphicsContext gc, double centerX, double centerY,
+                              double height, double base, double scale, boolean isDeformed) {
+        double scaledHeight = height * scale;
+        double scaledBase = base * scale;
 
-        double canvasWidth = gc.getCanvas().getWidth();
-        double canvasHeight = gc.getCanvas().getHeight();
-
-        // Calculate scaled dimensions
-        double scaledHeight = origHeight * scale;
-        double scaledBase = origOsnov * scale;
-        double scaledDeformHeight = deformHeight * scale;
-        double scaledDeformBase = deformOsnov * scale;
-
-        // Starting Y position - same for both figures
-        double yStart = canvasHeight / 4; // Moved higher up on canvas
-
-        // Original cylinder - left side
-        double xOriginal = canvasWidth / 3;
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2);
-
-        // Draw original cylinder
         // Top ellipse
-        gc.strokeOval(xOriginal - scaledBase/2, yStart, scaledBase, scaledBase/4);
+        gc.strokeOval(centerX - scaledBase/2, centerY, scaledBase, scaledBase/4);
 
-        // Vertical lines - now starting from middle of ovals
-        gc.strokeLine(xOriginal - scaledBase/2, yStart + scaledBase/8,
-                xOriginal - scaledBase/2, yStart + scaledHeight + scaledBase/8);
-        gc.strokeLine(xOriginal + scaledBase/2, yStart + scaledBase/8,
-                xOriginal + scaledBase/2, yStart + scaledHeight + scaledBase/8);
+        // Vertical lines
+        gc.strokeLine(centerX - scaledBase/2, centerY + scaledBase/8,
+                centerX - scaledBase/2, centerY + scaledHeight + scaledBase/8);
+        gc.strokeLine(centerX + scaledBase/2, centerY + scaledBase/8,
+                centerX + scaledBase/2, centerY + scaledHeight + scaledBase/8);
 
         // Bottom ellipse
-        gc.strokeOval(xOriginal - scaledBase/2, yStart + scaledHeight, scaledBase, scaledBase/4);
-
-        // Deformed cylinder - right side
-        double xDeformed = 2 * canvasWidth / 3;
-        gc.setStroke(Color.BROWN);
-
-        // Draw deformed cylinder
-        // Top ellipse
-        gc.strokeOval(xDeformed - scaledDeformBase/2, yStart, scaledDeformBase, scaledDeformBase/4);
-
-        // Vertical lines - starting from middle of ovals
-        gc.strokeLine(xDeformed - scaledDeformBase/2, yStart + scaledDeformBase/8,
-                xDeformed - scaledDeformBase/2, yStart + scaledDeformHeight + scaledDeformBase/8);
-        gc.strokeLine(xDeformed + scaledDeformBase/2, yStart + scaledDeformBase/8,
-                xDeformed + scaledDeformBase/2, yStart + scaledDeformHeight + scaledDeformBase/8);
-
-        // Bottom ellipse
-        gc.strokeOval(xDeformed - scaledDeformBase/2, yStart + scaledDeformHeight,
-                scaledDeformBase, scaledDeformBase/4);
+        gc.strokeOval(centerX - scaledBase/2, centerY + scaledHeight,
+                scaledBase, scaledBase/4);
     }
 }
