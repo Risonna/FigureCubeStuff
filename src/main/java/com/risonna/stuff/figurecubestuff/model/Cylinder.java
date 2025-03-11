@@ -24,17 +24,30 @@ public class Cylinder extends AbstractFigure {
         double scaledHeight = height * scale;
         double scaledBase = base * scale;
 
+        // Add a semi-transparent fill if this is the deformed figure
+        if (isDeformed) {
+            gc.setGlobalAlpha(0.4); // Semi-transparent
+            gc.setFill(Color.RED);
+        }
+
         // Top ellipse
-        gc.strokeOval(centerX - scaledBase/2, centerY, scaledBase, scaledBase/4);
+        gc.strokeOval(centerX - scaledBase/2, centerY - scaledHeight/2, scaledBase, scaledBase/4);
+        if (isDeformed) gc.fillOval(centerX - scaledBase/2, centerY - scaledHeight/2, scaledBase, scaledBase/4);
 
         // Vertical lines
-        gc.strokeLine(centerX - scaledBase/2, centerY + scaledBase/8,
-                centerX - scaledBase/2, centerY + scaledHeight + scaledBase/8);
-        gc.strokeLine(centerX + scaledBase/2, centerY + scaledBase/8,
-                centerX + scaledBase/2, centerY + scaledHeight + scaledBase/8);
+        gc.strokeLine(centerX - scaledBase/2, centerY - scaledHeight/2 + scaledBase/8,
+                centerX - scaledBase/2, centerY + scaledHeight/2 + scaledBase/8);
+        gc.strokeLine(centerX + scaledBase/2, centerY - scaledHeight/2 + scaledBase/8,
+                centerX + scaledBase/2, centerY + scaledHeight/2 + scaledBase/8);
 
         // Bottom ellipse
-        gc.strokeOval(centerX - scaledBase/2, centerY + scaledHeight,
+        gc.strokeOval(centerX - scaledBase/2, centerY + scaledHeight/2,
                 scaledBase, scaledBase/4);
+        if (isDeformed) gc.fillOval(centerX - scaledBase/2, centerY + scaledHeight/2, scaledBase, scaledBase/4);
+
+        // Reset transparency
+        if (isDeformed) {
+            gc.setGlobalAlpha(1.0);
+        }
     }
 }

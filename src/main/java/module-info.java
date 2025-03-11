@@ -6,6 +6,7 @@ module com.risonna.stuff.figurecubestuff {
     requires java.management;
     requires java.sql;
     requires mysql.connector.j;
+    requires org.apache.poi.ooxml;
 
     opens com.risonna.stuff.figurecubestuff to javafx.fxml;
     exports com.risonna.stuff.figurecubestuff;

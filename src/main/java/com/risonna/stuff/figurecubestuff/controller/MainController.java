@@ -15,6 +15,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import javafx.stage.DirectoryChooser;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.FileOutputStream;
+import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -329,12 +336,12 @@ public class MainController {
     @FXML
     private void onSaveToDb() {
         try {
-            System.out.println("Attempting to save to database..."); // Console debug
+            System.out.println("Попытка сохранить в базу данных..."); // Console debug
             if (currentSession == null || currentSession.getCalculations().isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("No Data to Save");
-                alert.setContentText("There are no calculations to save to the database.");
+                alert.setTitle("Ошибка");
+                alert.setHeaderText("Нет данных для сохранения");
+                alert.setContentText("Нет данных для сохранения в базу данных.");
                 alert.show();
                 return;
             }
@@ -342,9 +349,9 @@ public class MainController {
         } catch (Exception e) {
             e.printStackTrace(); // Console stack trace
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Database Error");
-            alert.setHeaderText("Failed to Save to Database");
-            alert.setContentText("Error: " + e.getMessage());
+            alert.setTitle("Ошибка базы данных");
+            alert.setHeaderText("Не удалось сохранить в базу данных");
+            alert.setContentText("Ошибка: " + e.getMessage());
             alert.show();
         }
     }
@@ -404,15 +411,15 @@ public class MainController {
     @FXML
     private void onAnalysisView() {
         try {
-            System.out.println("Attempting to show analysis view..."); // Console debug
+            System.out.println("Попытка показать окно анализа..."); // Console debug
             List<Calculation> calculations = fetchCalculationsFromDb();
-            System.out.println("Fetched " + calculations.size() + " calculations"); // Debug count
+            System.out.println("Получено " + calculations.size() + " расчетов"); // Debug count
 
             if (calculations.isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("No Data");
-                alert.setHeaderText("No Data for Analysis");
-                alert.setContentText("There are no calculations available in the database.");
+                alert.setTitle("Нет данных");
+                alert.setHeaderText("Нет данных для анализа");
+                alert.setContentText("В базе данных нет данных для анализа.");
                 alert.show();
                 return;
             }
@@ -427,9 +434,9 @@ public class MainController {
         } catch (Exception e) {
             e.printStackTrace(); // Console stack trace
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Analysis Error");
-            alert.setHeaderText("Failed to Show Analysis");
-            alert.setContentText("Error: " + e.getMessage());
+            alert.setTitle("Ошибка анализа");
+            alert.setHeaderText("Не получилось отобразить анализ");
+            alert.setContentText("Ошибка: " + e.getMessage());
             alert.show();
         }
     }
@@ -494,5 +501,242 @@ public class MainController {
         // Keep the original notification if you want both
         Notification notification = new Notification(message);
         notification.show();
+    }
+
+    @FXML
+    private void exportToExcel() {
+        try {
+            List<Calculation> calculations = fetchCalculationsFromDb();
+
+            if (calculations.isEmpty()) {
+                showNotification("Нет данных для выгрузки");
+                return;
+            }
+
+            // Create directory chooser dialog
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Сохранить в Excel");
+            File directory = directoryChooser.showDialog(null);
+
+            if (directory == null) {
+                return; // User canceled
+            }
+
+            // Create a new Excel workbook
+            Workbook workbook = new XSSFWorkbook();
+
+            // Main data sheet
+            Sheet dataSheet = workbook.createSheet("Данные расчетов");
+
+            // Create header row
+            Row headerRow = dataSheet.createRow(0);
+            String[] columns = {"Тип фигуры", "Материал", "Коэффициент материала", "Высота", "Основание",
+                    "Деформированная высота", "Деформированное основание", "Коэффициент деформации высоты",
+                    "Коэффициент деформации основания", "Дата"};
+
+            // Style for headers
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            headerStyle.setFont(font);
+
+            // Create headers
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Prepare arrays for correlation calculation
+            double[] origHeights = new double[calculations.size()];
+            double[] deformedHeights = new double[calculations.size()];
+            double[] origBases = new double[calculations.size()];
+            double[] deformedBases = new double[calculations.size()];
+            double[] materialFactors = new double[calculations.size()];
+            double[] heightDeformRatios = new double[calculations.size()];
+            double[] baseDeformRatios = new double[calculations.size()];
+
+            // Fill data rows
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            for (int i = 0; i < calculations.size(); i++) {
+                Calculation calc = calculations.get(i);
+                Row row = dataSheet.createRow(i + 1);
+
+                // Store values for correlation
+                origHeights[i] = calc.getHeight();
+                deformedHeights[i] = calc.getDeformedHeight();
+                origBases[i] = calc.getBase();
+                deformedBases[i] = calc.getDeformedBase();
+                materialFactors[i] = calc.getMaterial().getFactor();
+                heightDeformRatios[i] = (calc.getHeight() - calc.getDeformedHeight()) / calc.getHeight();
+                baseDeformRatios[i] = (calc.getBase() - calc.getDeformedBase()) / calc.getBase();
+
+                // Set cell values
+                row.createCell(0).setCellValue(calc.getFigureType());
+                row.createCell(1).setCellValue(calc.getMaterial().toString());
+                row.createCell(2).setCellValue(calc.getMaterial().getFactor());
+                row.createCell(3).setCellValue(calc.getHeight());
+                row.createCell(4).setCellValue(calc.getBase());
+                row.createCell(5).setCellValue(calc.getDeformedHeight());
+                row.createCell(6).setCellValue(calc.getDeformedBase());
+                row.createCell(7).setCellValue(heightDeformRatios[i]);
+                row.createCell(8).setCellValue(baseDeformRatios[i]);
+
+                // Add calculation time if it's not null
+                if (calc.getCalculationTime() != null) {
+                    row.createCell(9).setCellValue(calc.getCalculationTime().format(formatter));
+                }
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < columns.length; i++) {
+                dataSheet.autoSizeColumn(i);
+            }
+
+            // Create correlation sheet
+            Sheet correlationSheet = workbook.createSheet("Корреляционный анализ");
+
+            // Create correlation headers
+            String[] correlationPairs = {
+                    "Исходная высота vs Деформированная высота",
+                    "Исходное основание vs Деформированное основание",
+                    "Коэффициент материала vs Коэффициент деформации высоты",
+                    "Коэффициент материала vs Коэффициент деформации основания",
+                    "Исходная высота vs Коэффициент деформации высоты",
+                    "Исходное основание vs Коэффициент деформации основания"
+            };
+
+            Row correlationHeaderRow = correlationSheet.createRow(0);
+            Cell headerCell = correlationHeaderRow.createCell(0);
+            headerCell.setCellValue("Корреляционные пары");
+            headerCell.setCellStyle(headerStyle);
+
+            Cell valueHeaderCell = correlationHeaderRow.createCell(1);
+            valueHeaderCell.setCellValue("Коэффициент Корреляции");
+            valueHeaderCell.setCellStyle(headerStyle);
+
+            Cell interpretationHeaderCell = correlationHeaderRow.createCell(2);
+            interpretationHeaderCell.setCellValue("Интерпретация");
+            interpretationHeaderCell.setCellStyle(headerStyle);
+
+            // Calculate correlations
+            double[] correlations = {
+                    calculateCorrelation(origHeights, deformedHeights),
+                    calculateCorrelation(origBases, deformedBases),
+                    calculateCorrelation(materialFactors, heightDeformRatios),
+                    calculateCorrelation(materialFactors, baseDeformRatios),
+                    calculateCorrelation(origHeights, heightDeformRatios),
+                    calculateCorrelation(origBases, baseDeformRatios)
+            };
+
+            // Create styles for different correlation strengths
+            CellStyle strongPosStyle = workbook.createCellStyle();
+            strongPosStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+            strongPosStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle strongNegStyle = workbook.createCellStyle();
+            strongNegStyle.setFillForegroundColor(IndexedColors.ROSE.getIndex());
+            strongNegStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle moderateStyle = workbook.createCellStyle();
+            moderateStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+            moderateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle weakStyle = workbook.createCellStyle();
+            weakStyle.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
+            weakStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            // Fill correlation data
+            for (int i = 0; i < correlationPairs.length; i++) {
+                Row row = correlationSheet.createRow(i + 1);
+                row.createCell(0).setCellValue(correlationPairs[i]);
+
+                Cell valueCell = row.createCell(1);
+                valueCell.setCellValue(correlations[i]);
+
+                Cell interpretationCell = row.createCell(2);
+                double corrValue = Math.abs(correlations[i]);
+
+                if (corrValue >= 0.7) {
+                    interpretationCell.setCellValue("Сильная корреляция");
+                    valueCell.setCellStyle(correlations[i] >= 0 ? strongPosStyle : strongNegStyle);
+                } else if (corrValue >= 0.5) {
+                    interpretationCell.setCellValue("Средняя корреляция");
+                    valueCell.setCellStyle(moderateStyle);
+                } else if (corrValue >= 0.3) {
+                    interpretationCell.setCellValue("Слабая корреляция");
+                    valueCell.setCellStyle(weakStyle);
+                } else {
+                    interpretationCell.setCellValue("Очень слабая или отсутствующая корреляция");
+                }
+            }
+
+            // Add explanation row
+            Row explanationRow = correlationSheet.createRow(correlationPairs.length + 2);
+            Cell explanationCell = explanationRow.createCell(0);
+            explanationCell.setCellValue("Пояснение: Коэффициент корреляции измеряет силу и направление линейной связи между двумя переменными.");
+
+            Row explanationRow2 = correlationSheet.createRow(correlationPairs.length + 3);
+            Cell explanationCell2 = explanationRow2.createCell(0);
+            explanationCell2.setCellValue("Значения варьируются от -1 до 1. Значение близкое к 1 означает сильную положительную корреляцию, к -1 – сильную отрицательную, к 0 – отсутствие корреляции.");
+
+            // Auto-size correlation sheet columns
+            for (int i = 0; i < 3; i++) {
+                correlationSheet.autoSizeColumn(i);
+            }
+
+            // Write the file
+            String fileName = "deformation_data_" + java.time.LocalDate.now().toString() + ".xlsx";
+            String filePath = Paths.get(directory.getAbsolutePath(), fileName).toString();
+
+            try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
+                workbook.write(fileOut);
+                showNotification("Данные выгружены в " + filePath);
+            }
+
+            workbook.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showNotification("Ошибка выгрузки данных: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Calculate Pearson correlation coefficient between two arrays
+     */
+    private double calculateCorrelation(double[] x, double[] y) {
+        if (x.length != y.length || x.length < 2) {
+            return 0; // Cannot calculate correlation with insufficient data
+        }
+
+        // Calculate means
+        double meanX = 0;
+        double meanY = 0;
+        for (int i = 0; i < x.length; i++) {
+            meanX += x[i];
+            meanY += y[i];
+        }
+        meanX /= x.length;
+        meanY /= y.length;
+
+        // Calculate correlation
+        double numerator = 0;
+        double denominatorX = 0;
+        double denominatorY = 0;
+
+        for (int i = 0; i < x.length; i++) {
+            double xDiff = x[i] - meanX;
+            double yDiff = y[i] - meanY;
+            numerator += xDiff * yDiff;
+            denominatorX += xDiff * xDiff;
+            denominatorY += yDiff * yDiff;
+        }
+
+        if (denominatorX == 0 || denominatorY == 0) {
+            return 0; // Avoid division by zero
+        }
+
+        return numerator / (Math.sqrt(denominatorX) * Math.sqrt(denominatorY));
     }
 }

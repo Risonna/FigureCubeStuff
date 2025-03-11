@@ -96,6 +96,7 @@
 
         <!-- Analysis View (hidden by default) -->
         <VBox fx:id="analysisView" spacing="20" styleClass="content-area" visible="false">
+            <Button text="Export to Excel" onAction="#exportToExcel" styleClass="calculate-button" />
             <GridPane hgap="10" vgap="10" fx:id="chartsGrid">
                 <!-- Placeholder for 4 charts -->
                 <Pane styleClass="chart" GridPane.columnIndex="0" GridPane.rowIndex="0"/>

@@ -6,9 +6,9 @@ import javafx.scene.paint.Color;
 public abstract class AbstractFigure {
     protected TypeOfMetal material;
     protected double origHeight, origOsnov, deformHeight, deformOsnov;
-    protected static final Color ORIGINAL_COLOR = Color.BLACK;
-    protected static final Color DEFORMED_COLOR = Color.BROWN;
-    protected static final double LINE_WIDTH = 2;
+    protected static final Color ORIGINAL_COLOR = Color.BLUE; // Changed from BLACK
+    protected static final Color DEFORMED_COLOR = Color.RED;  // Changed from BROWN
+    protected static final double LINE_WIDTH = 2.5; // Slightly thicker lines
 
     public AbstractFigure() {
         origHeight = 1;
@@ -27,19 +27,27 @@ public abstract class AbstractFigure {
 
     public abstract void calc();
 
+    // Replace the draw method in AbstractFigure.java
     public void draw(GraphicsContext gc, double scale) {
         gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         gc.setLineWidth(LINE_WIDTH);
 
+        // Calculate center of canvas
+        double centerX = gc.getCanvas().getWidth() / 2;
+        double centerY = gc.getCanvas().getHeight() / 2;
+
         // Draw original figure
         gc.setStroke(ORIGINAL_COLOR);
-        drawFigure(gc, gc.getCanvas().getWidth() / 3, gc.getCanvas().getHeight() / 3,
-                origHeight, origOsnov, scale, false);
+        drawFigure(gc, centerX, centerY, origHeight, origOsnov, scale, false);
 
-        // Draw deformed figure
+        // Draw deformed figure inside the original figure
+        // The bottom of the deformed figure is aligned with the bottom of the original
         gc.setStroke(DEFORMED_COLOR);
-        drawFigure(gc, 2 * gc.getCanvas().getWidth() / 3, gc.getCanvas().getHeight() / 3,
-                deformHeight, deformOsnov, scale, true);
+
+        // For the deformed figure, we place it at the same X position but adjust Y position
+        // to align bottoms while keeping the deformed figure's center at the appropriate height
+        double deformedCenterY = centerY + (origHeight - deformHeight) * scale / 2;
+        drawFigure(gc, centerX, deformedCenterY, deformHeight, deformOsnov, scale, true);
     }
 
     protected abstract void drawFigure(GraphicsContext gc, double centerX, double centerY,

@@ -87,8 +87,9 @@
 
 /* Canvas Area */
 .canvas-area {
-    -fx-background-color: #333333;
+    -fx-background-color: #ffffff; /* White background instead of dark */
     -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 5, 0, 0, 2);
 }
 
 /* Charts */
